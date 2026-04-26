@@ -45,7 +45,7 @@ def atendimento_feitosa():
 
     # 🔥 SUA RESPOSTA ORIGINAL (mantida)
     if any(palavra in fala_do_cliente.lower() for palavra in ["seguro", "seguros", "cota", "cotar", "orçamento"]):
-        frase_pronta = "DL Feitosa Bot: Claro! Trabalhamos com Seguro de Carro, Moto, Veículos Pesados, Residencial, Vida e Proteção Veicular. Quer fazer uma cotação? Posso te ajudar agora mesmo!"
+        frase_pronta = "Claro! Trabalhamos com Seguro de Carro, Moto, Veículos Pesados, Residencial, Vida e Proteção Veicular. Quer fazer uma cotação? Posso te ajudar agora mesmo!"
         resposta = frase_pronta
     else:
         try:
