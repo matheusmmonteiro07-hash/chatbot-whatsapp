@@ -1,19 +1,13 @@
-from flask import Flask, request
+from flask import Flask, request, jsonify
 from google import genai
 from dotenv import load_dotenv
 from twilio.twiml.messaging_response import MessagingResponse
 import os
 
-load_dotenv()
+load_dotenv() 
 
 app = Flask(__name__)
-
-api_key = os.getenv("GEMINI_API_KEY")
-
-if not api_key:
-    raise Exception("API KEY não encontrada. Configure no Render.")
-
-client = genai.Client(api_key=api_key)
+client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 regras = """Você é um assistente virtual profissional da DL Feitosa Seguros.
 Endereço: Rua Jockey Clube, 462 – Henrique Jorge, Fortaleza-CE
@@ -32,25 +26,28 @@ chat = client.chats.create(
     config={"system_instruction": regras}
 )
 
+print("Chatbot da DL Feitosa Seguros iniciado!")
+
 @app.route('/atendimento', methods=['POST'])
 def atendimento_feitosa():
-    fala_do_cliente = request.form.get("Body", "").strip()
+    informacao = request.json
+    fala_do_cliente = informacao.get("mensagem", "").strip()
 
     if not fala_do_cliente:
-        return "Mensagem vazia"
+        return jsonify({"erro": "Mensagem vazia!"}), 400
 
-    if any(p in fala_do_cliente.lower() for p in ["seguro","seguros","cota","cotar","orçamento"]):
-        resposta = "Claro! Trabalhamos com Seguro de Carro, Moto, Residencial, Vida e Proteção Veicular. Quer fazer uma cotação?"
-    else:
-        try:
-            response = chat.send_message(fala_do_cliente)
-            resposta = response.text.strip()
-        except Exception as e:
-            resposta = "Erro ao processar sua mensagem."
+    if any(palavra in fala_do_cliente.lower() for palavra in ["seguro", "seguros", "cota", "cotar", "orçamento"]):
+        frase_pronta = "DL Feitosa Bot: Claro! Trabalhamos com Seguro de Carro, Moto, Veículos Pesados, Residencial, Vida e Proteção Veicular. Quer fazer uma cotação? Posso te ajudar agora mesmo!"
+        return jsonify({"bot": frase_pronta, "origem": "filtro_local"})
 
-    resp = MessagingResponse()
-    resp.message(resposta)
-    return str(resp)
+    try:
+        response = chat.send_message(fala_do_cliente)
+        return jsonify({"bot": response.text.strip(), "origem": "gemini"})
+
+    except Exception as e:
+        if "429" in str(e):
+            return jsonify({"erro": "Limite atingido. Aguarde um momento..."}), 429
+        return jsonify({"erro": str(e)}), 500
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
