@@ -48,6 +48,7 @@ def atendimento_feitosa():
             return jsonify({"erro": "Limite atingido. Aguarde um momento..."}), 429
         return jsonify({"erro": str(e)}), 500
 
-if __name__ == "__main__":
 import os
-app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
